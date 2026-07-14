@@ -173,6 +173,56 @@
     border-color:var(--red-500);
   }
 
+  .field{position:relative;}
+  .kop-history{
+    position:absolute;
+    top:calc(100% + 4px);
+    left:0;
+    right:0;
+    z-index:20;
+    background:var(--ink-900);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:0 8px 24px rgba(0,0,0,0.35);
+    max-height:220px;
+    overflow-y:auto;
+    display:none;
+  }
+  .kop-history.open{display:block;}
+  .kop-history-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 10px;
+    cursor:pointer;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    color:var(--paper-100);
+    border-bottom:1px solid var(--ink-800);
+  }
+  .kop-history-item:last-child{border-bottom:none;}
+  .kop-history-item:hover, .kop-history-item.active{background:var(--ink-800);}
+  .kop-history-item span.kop-history-val{
+    flex:1;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .kop-history-item .kop-history-remove{
+    flex-shrink:0;
+    color:var(--slate-400);
+    font-size:11px;
+    line-height:1;
+    padding:2px 4px;
+  }
+  .kop-history-item .kop-history-remove:hover{color:var(--red-500);}
+  .kop-history-empty{
+    padding:10px;
+    font-size:11.5px;
+    color:var(--slate-400);
+    font-family:'JetBrains Mono',monospace;
+  }
+
   .field-full{grid-column:1 / -1;}
   .kop-file-drop{
     position:relative;
@@ -476,10 +526,12 @@
       <div class="field">
         <label for="oldBlockName">Nama Blok Kop Lama</label>
         <input type="text" id="oldBlockName" placeholder="mis. KOP_SHD" autocomplete="off">
+        <div class="kop-history" id="oldBlockHistory"></div>
       </div>
       <div class="field">
         <label for="newBlockName">Nama Blok Kop Baru</label>
         <input type="text" id="newBlockName" placeholder="mis. KOP_ABD" autocomplete="off">
+        <div class="kop-history" id="newBlockHistory"></div>
       </div>
       <div class="field field-full">
         <label for="kopFileInput">File Referensi Kop Baru (.dwg)</label>
@@ -547,6 +599,8 @@ const API_BASE = (window.location.hostname === 'localhost' || window.location.ho
   const serverLabel  = document.getElementById('serverLabel');
   const oldBlockInput = document.getElementById('oldBlockName');
   const newBlockInput = document.getElementById('newBlockName');
+  const oldBlockHistoryEl = document.getElementById('oldBlockHistory');
+  const newBlockHistoryEl = document.getElementById('newBlockHistory');
   const kopFileInput  = document.getElementById('kopFileInput');
   const kopFileDrop   = document.getElementById('kopFileDrop');
   const kopFileLabel  = document.getElementById('kopFileLabel');
@@ -619,6 +673,99 @@ const API_BASE = (window.location.hostname === 'localhost' || window.location.ho
     kopFileLabel.textContent = `${file.name} — klik untuk ganti`;
   }
 
+  // ---------- Nama Blok Kop history (localStorage) ----------
+  const KOP_HISTORY_MAX = 12;
+  const kopHistoryConfig = [
+    { input: oldBlockInput, dropdown: oldBlockHistoryEl, storageKey: 'kopHistory_oldBlockName' },
+    { input: newBlockInput, dropdown: newBlockHistoryEl, storageKey: 'kopHistory_newBlockName' }
+  ];
+
+  function getKopHistory(storageKey){
+    try {
+      const raw = localStorage.getItem(storageKey);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveKopHistory(storageKey, value){
+    const trimmed = (value || '').trim();
+    if (!trimmed) return;
+    let history = getKopHistory(storageKey).filter(v => v.toLowerCase() !== trimmed.toLowerCase());
+    history.unshift(trimmed);
+    if (history.length > KOP_HISTORY_MAX) history = history.slice(0, KOP_HISTORY_MAX);
+    localStorage.setItem(storageKey, JSON.stringify(history));
+  }
+
+  function removeKopHistoryItem(storageKey, value){
+    const history = getKopHistory(storageKey).filter(v => v !== value);
+    localStorage.setItem(storageKey, JSON.stringify(history));
+  }
+
+  function renderKopHistory(cfg){
+    const { input, dropdown, storageKey } = cfg;
+    const query = input.value.trim().toLowerCase();
+    const history = getKopHistory(storageKey).filter(v => !query || v.toLowerCase().includes(query));
+
+    dropdown.innerHTML = '';
+
+    if (history.length === 0) {
+      dropdown.classList.remove('open');
+      return;
+    }
+
+    history.forEach(val => {
+      const item = document.createElement('div');
+      item.className = 'kop-history-item';
+
+      const label = document.createElement('span');
+      label.className = 'kop-history-val';
+      label.textContent = val;
+      label.addEventListener('mousedown', e => {
+        e.preventDefault();
+        input.value = val;
+        dropdown.classList.remove('open');
+        input.dispatchEvent(new Event('input'));
+      });
+
+      const remove = document.createElement('span');
+      remove.className = 'kop-history-remove';
+      remove.textContent = '✕';
+      remove.title = 'Hapus dari riwayat';
+      remove.addEventListener('mousedown', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        removeKopHistoryItem(storageKey, val);
+        renderKopHistory(cfg);
+      });
+
+      item.appendChild(label);
+      item.appendChild(remove);
+      dropdown.appendChild(item);
+    });
+
+    dropdown.classList.add('open');
+  }
+
+  kopHistoryConfig.forEach(cfg => {
+    cfg.input.addEventListener('focus', () => renderKopHistory(cfg));
+    cfg.input.addEventListener('input', () => renderKopHistory(cfg));
+    cfg.input.addEventListener('blur', () => {
+      // Delay so a click/mousedown on a history item can register first.
+      setTimeout(() => cfg.dropdown.classList.remove('open'), 120);
+    });
+  });
+
+  document.addEventListener('click', e => {
+    kopHistoryConfig.forEach(cfg => {
+      if (!cfg.input.contains(e.target) && !cfg.dropdown.contains(e.target)) {
+        cfg.dropdown.classList.remove('open');
+      }
+    });
+  });
+
   function handleFiles(fileList){
     const files = Array.from(fileList).filter(f => f.name.toLowerCase().endsWith('.dwg'));
     if (files.length === 0) return;
@@ -637,6 +784,9 @@ const API_BASE = (window.location.hostname === 'localhost' || window.location.ho
       alert('Isi Nama Blok Kop Lama, Nama Blok Kop Baru, dan upload file referensi Kop Baru (.dwg) sebelum upload file.');
       return;
     }
+
+    saveKopHistory('kopHistory_oldBlockName', oldBlockName);
+    saveKopHistory('kopHistory_newBlockName', newBlockName);
 
     const formData = new FormData();
     files.forEach(f => formData.append('files', f));
