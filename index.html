@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOP REVISION — As-Built Drawing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink-950:#12161D;
+    --ink-900:#171C24;
+    --ink-800:#1E2530;
+    --ink-700:#2A3340;
+    --line:#333F4E;
+    --paper-100:#ECEFF3;
+    --paper-300:#C7CEDA;
+    --slate-400:#7C8899;
+    --blueprint-500:#3D7BF0;
+    --blueprint-400:#5C93FF;
+    --blueprint-glow: rgba(61,123,240,0.35);
+    --amber-500:#E8A33D;
+    --green-500:#3FBF8C;
+    --red-500:#E8574A;
+    --radius:2px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+
+  body{
+    background:
+      linear-gradient(var(--ink-950),var(--ink-950)) padding-box,
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 32px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 32px),
+      var(--ink-950);
+    color:var(--paper-100);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding:48px 24px 80px;
+  }
+
+  .wrap{max-width:920px;margin:0 auto;}
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    border-bottom:1px solid var(--line);
+    padding-bottom:20px;
+    margin-bottom:36px;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.16em;
+    color:var(--blueprint-400);
+    text-transform:uppercase;
+    margin:0 0 8px;
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:32px;
+    letter-spacing:-0.01em;
+    margin:0;
+    color:var(--paper-100);
+  }
+  h1 span{color:var(--slate-400); font-weight:500;}
+  .subtitle{
+    font-size:13.5px;
+    color:var(--slate-400);
+    margin-top:8px;
+    max-width:480px;
+    line-height:1.5;
+  }
+  .server-status{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    color:var(--slate-400);
+    white-space:nowrap;
+    padding-bottom:4px;
+  }
+  .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--red-500);
+    box-shadow:0 0 0 3px rgba(232,87,74,0.15);
+  }
+  .dot.online{background:var(--green-500); box-shadow:0 0 0 3px rgba(63,191,140,0.15);}
+  .dot.warning{background:var(--amber-500); box-shadow:0 0 0 3px rgba(232,163,61,0.15);}
+
+  /* ---------- Crop marks (signature) ---------- */
+  .plate{
+    position:relative;
+    background:var(--ink-900);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+  }
+  .plate::before,.plate::after,
+  .plate .cm-tr,.plate .cm-bl{
+    content:"";
+    position:absolute;
+    width:14px;height:14px;
+    pointer-events:none;
+  }
+  .plate::before{ /* top-left */
+    top:-1px;left:-1px;
+    border-top:2px solid var(--blueprint-500);
+    border-left:2px solid var(--blueprint-500);
+  }
+  .plate::after{ /* bottom-right */
+    bottom:-1px;right:-1px;
+    border-bottom:2px solid var(--blueprint-500);
+    border-right:2px solid var(--blueprint-500);
+  }
+
+  /* ---------- Block config ---------- */
+  .block-config{
+    padding:22px 24px;
+    margin-bottom:20px;
+  }
+  .block-config-head h3{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    margin:0 0 6px;
+    color:var(--paper-100);
+  }
+  .block-config-head p{
+    font-size:12.5px;
+    color:var(--slate-400);
+    margin:0 0 16px;
+    line-height:1.5;
+    max-width:560px;
+  }
+  .block-config-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  .field label{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--slate-400);
+    margin-bottom:8px;
+  }
+  .field input[type=text]{
+    width:100%;
+    background:var(--ink-950);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    color:var(--paper-100);
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    padding:10px 12px;
+    transition:border-color .15s ease;
+  }
+  .field input[type=text]::placeholder{color:var(--slate-500,#5C6879);}
+  .field input[type=text]:focus{
+    outline:none;
+    border-color:var(--blueprint-400);
+  }
+  .field input[type=text].field-error{
+    border-color:var(--red-500);
+  }
+
+  .field-full{grid-column:1 / -1;}
+  .kop-file-drop{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--ink-950);
+    border:1.5px dashed var(--line);
+    border-radius:var(--radius);
+    color:var(--slate-400);
+    font-size:12.5px;
+    padding:12px 14px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease, color .15s ease;
+  }
+  .kop-file-drop svg{flex-shrink:0; stroke:var(--blueprint-400);}
+  .kop-file-drop b{color:var(--blueprint-400); font-weight:600;}
+  .kop-file-drop:hover{border-color:var(--blueprint-400);}
+  .kop-file-drop.drag{
+    background:rgba(61,123,240,0.06);
+    border-color:var(--blueprint-400);
+  }
+  .kop-file-drop.has-file{
+    border-style:solid;
+    border-color:rgba(63,191,140,0.4);
+    color:var(--green-500);
+  }
+  .kop-file-drop.has-file svg{stroke:var(--green-500);}
+  .kop-file-drop.field-error{border-color:var(--red-500);}
+  .kop-file-drop input[type=file]{
+    position:absolute;
+    inset:0;
+    opacity:0;
+    cursor:pointer;
+  }
+  .kop-file-remove{
+    margin-left:auto;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--slate-400);
+    text-decoration:underline;
+    text-underline-offset:2px;
+    position:relative;
+    z-index:1;
+  }
+  .kop-file-remove:hover{color:var(--red-500);}
+
+  @media (max-width:560px){
+    .block-config-grid{grid-template-columns:1fr;}
+  }
+
+  /* ---------- Dropzone ---------- */
+  .dropzone{
+    padding:56px 32px;
+    text-align:center;
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease;
+    margin-bottom:28px;
+  }
+  .dropzone.drag{
+    background:rgba(61,123,240,0.06);
+  }
+  .dropzone.drag::before,.dropzone.drag::after{
+    border-color:var(--blueprint-400);
+  }
+  .dz-icon{
+    width:40px;height:40px;
+    margin:0 auto 18px;
+    border:1.5px dashed var(--line);
+    border-radius:var(--radius);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .dz-icon svg{width:18px;height:18px;stroke:var(--blueprint-400);}
+  .dropzone h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:17px;
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  .dropzone p{
+    font-size:13px;
+    color:var(--slate-400);
+    margin:0;
+  }
+  .dropzone p b{color:var(--blueprint-400); font-weight:600;}
+  input[type=file]{display:none;}
+
+  /* ---------- Queue ---------- */
+  .queue-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin:0 0 10px;
+    padding:0 2px;
+  }
+  .queue-head h3{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--slate-400);
+    margin:0;
+  }
+  .clear-btn{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--slate-400);
+    background:none;
+    border:none;
+    cursor:pointer;
+    text-decoration:underline;
+    text-underline-offset:2px;
+  }
+  .clear-btn:hover{color:var(--paper-100);}
+
+  .empty-state{
+    padding:28px 20px;
+    text-align:center;
+    color:var(--slate-400);
+    font-size:13px;
+    font-family:'JetBrains Mono',monospace;
+  }
+
+  .queue{list-style:none; margin:0; padding:0;}
+  .queue-item{
+    position:relative;
+    border-bottom:1px solid var(--line);
+    padding:16px 18px;
+  }
+  .queue-item:last-child{border-bottom:none;}
+  
+  .job-row{
+    display:grid;
+    grid-template-columns:1fr auto auto;
+    align-items:center;
+    gap:18px;
+  }
+
+  .file-meta{min-width:0;}
+  .file-name{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13.5px;
+    font-weight:500;
+    color:var(--paper-100);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    margin-bottom:6px;
+  }
+  .file-bar-track{
+    height:3px;
+    background:var(--ink-700);
+    border-radius:2px;
+    overflow:hidden;
+  }
+  .file-bar-fill{
+    height:100%;
+    width:0%;
+    background:var(--blueprint-500);
+    box-shadow:0 0 8px var(--blueprint-glow);
+    transition:width .25s ease;
+  }
+  .file-bar-fill.done{background:var(--green-500); box-shadow:none;}
+  .file-bar-fill.error{background:var(--red-500); box-shadow:none;}
+
+  .status-badge{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:4px 8px;
+    border-radius:2px;
+    border:1px solid transparent;
+    white-space:nowrap;
+  }
+  .status-badge.antrian{color:var(--slate-400); border-color:var(--line);}
+  .status-badge.proses{color:var(--blueprint-400); border-color:rgba(61,123,240,0.35); background:rgba(61,123,240,0.08);}
+  .status-badge.selesai{color:var(--green-500); border-color:rgba(63,191,140,0.35); background:rgba(63,191,140,0.08);}
+  .status-badge.gagal{color:var(--red-500); border-color:rgba(232,87,74,0.35); background:rgba(232,87,74,0.08);}
+  .status-badge.cancelled{color:var(--slate-500); border-color:var(--line);}
+
+  .action-btn{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    font-weight:500;
+    padding:6px 12px;
+    border-radius:2px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--paper-300);
+    cursor:pointer;
+    white-space:nowrap;
+    text-decoration:none;
+    display:inline-block;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .action-btn:hover{border-color:var(--blueprint-400); color:var(--blueprint-400);}
+  .action-btn.download{border-color:rgba(63,191,140,0.4); color:var(--green-500);}
+  .action-btn.download:hover{background:rgba(63,191,140,0.08);}
+  .action-btn[disabled]{opacity:0.35; cursor:not-allowed; pointer-events:none;}
+  .action-group{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
+
+  /* ---------- Logs styling ---------- */
+  .job-logs-toggle{
+    cursor:pointer;
+    font-size:11px;
+    font-family:'JetBrains Mono',monospace;
+    color:var(--slate-400);
+    margin-top:8px;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    user-select:none;
+  }
+  .job-logs-toggle:hover{color:var(--blueprint-400);}
+  
+  .arrow-icon{
+    transition:transform 0.15s ease;
+  }
+  .arrow-icon.open{
+    transform:rotate(90deg);
+  }
+  
+  .job-logs-content{
+    background:var(--ink-950);
+    border:1px solid var(--line);
+    padding:10px 14px;
+    border-radius:2px;
+    margin-top:6px;
+    max-height:160px;
+    overflow-y:auto;
+    font-size:11px;
+    color:var(--paper-300);
+    font-family:'JetBrains Mono',monospace;
+    line-height:1.5;
+  }
+  .job-logs-content pre{
+    margin:0;
+    white-space:pre-wrap;
+    word-break:break-all;
+  }
+  .log-err{
+    color:var(--red-500);
+  }
+
+  /* ---------- Footer note ---------- */
+  .note{
+    margin-top:28px;
+    padding:14px 16px;
+    border:1px solid var(--line);
+    border-left:2px solid var(--amber-500);
+    border-radius:var(--radius);
+    font-size:12.5px;
+    color:var(--slate-400);
+    line-height:1.6;
+    background:var(--ink-900);
+  }
+  .note b{color:var(--paper-300);}
+  .note code{
+    font-family:'JetBrains Mono',monospace;
+    background:var(--ink-800);
+    padding:1px 5px;
+    border-radius:2px;
+    color:var(--blueprint-400);
+    font-size:11.5px;
+  }
+
+  @media (max-width:560px){
+    .job-row{grid-template-columns:1fr; row-gap:10px;}
+    .status-badge,.action-group{justify-self:start;}
+    h1{font-size:26px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <div>
+      <p class="eyebrow">Kop Revision · As-Built Drawing</p>
+      <h1>KOP REVISION<span> / ABD</span></h1>
+      <p class="subtitle">Upload gambar DWG, revisi definisi blok Kop As-Built Drawing secara batch, dan relokasi teks layout otomatis lewat AutoCAD.</p>
+    </div>
+    <div class="server-status">
+      <span class="dot" id="serverDot"></span>
+      <span id="serverLabel">SERVER LOKAL: MENGHUBUNGKAN...</span>
+    </div>
+  </header>
+
+  <div class="plate block-config">
+    <div class="block-config-head">
+      <h3>Acuan Nama Blok Kop</h3>
+      <p>Isi nama blok persis seperti pada definisi blok di DWG (case-sensitive). Sistem memakai nilai ini untuk mencari &amp; mengganti blok saat proses berjalan.</p>
+    </div>
+    <div class="block-config-grid">
+      <div class="field">
+        <label for="oldBlockName">Nama Blok Kop Lama</label>
+        <input type="text" id="oldBlockName" placeholder="mis. KOP_SHD" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="newBlockName">Nama Blok Kop Baru</label>
+        <input type="text" id="newBlockName" placeholder="mis. KOP_ABD" autocomplete="off">
+      </div>
+      <div class="field field-full">
+        <label for="kopFileInput">File Referensi Kop Baru (.dwg)</label>
+        <div class="kop-file-drop" id="kopFileDrop">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="16" height="16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12M12 3l-4 4M12 3l4 4M5 21h14"/>
+          </svg>
+          <span id="kopFileLabel">Tarik file DWG kop baru ke sini, atau <b>klik untuk pilih</b></span>
+          <input type="file" id="kopFileInput" accept=".dwg">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="plate dropzone" id="dropzone">
+    <div class="dz-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3v12M12 3l-4 4M12 3l4 4M5 21h14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h2>Tarik file DWG ke sini</h2>
+    <p>atau <b>klik untuk pilih file</b> — bisa lebih dari satu sekaligus (.dwg)</p>
+    <input type="file" id="fileInput" multiple accept=".dwg">
+  </div>
+
+  <div class="queue-head">
+    <h3>Antrian Proses</h3>
+    <div style="display: flex; gap: 16px; align-items: center;">
+      <button class="clear-btn" id="downloadAllBtn" style="color: var(--green-500); display: none;">unduh semua (ZIP)</button>
+      <button class="clear-btn" id="clearBtn">bersihkan selesai</button>
+    </div>
+  </div>
+
+  <div class="plate">
+    <div class="empty-state" id="emptyState">Belum ada file diunggah.</div>
+    <ul class="queue" id="queueList"></ul>
+  </div>
+
+  <div class="note" id="serverConfigNote">
+    <b>Catatan:</b> proses ini menjalankan AutoCAD lewat COM automation. Pastikan AutoCAD telah 
+    terbuka, dan setiap batch upload menyertakan Nama Blok Kop Lama/Baru serta file referensi Kop Baru (.dwg).
+  </div>
+
+</div>
+
+<script>
+  // ---------- Dynamic API Base ----------
+// Direct all requests to relative path when running locally, otherwise to the Cloudflare Tunnel URL
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+? ''
+: 'https://api-kop.qcdefect.online';
+
+  // ---------- State ----------
+  let jobs = []; // {id, name, size, status, progress, logs, error, downloadUrl}
+  let openLogs = {}; // id -> boolean (keep track of expanded logs)
+  let pollInterval = null;
+
+  const dropzone     = document.getElementById('dropzone');
+  const fileInput    = document.getElementById('fileInput');
+  const queueList    = document.getElementById('queueList');
+  const emptyState   = document.getElementById('emptyState');
+  const clearBtn     = document.getElementById('clearBtn');
+  const downloadAllBtn = document.getElementById('downloadAllBtn');
+  const serverDot    = document.getElementById('serverDot');
+  const serverLabel  = document.getElementById('serverLabel');
+  const oldBlockInput = document.getElementById('oldBlockName');
+  const newBlockInput = document.getElementById('newBlockName');
+  const kopFileInput  = document.getElementById('kopFileInput');
+  const kopFileDrop   = document.getElementById('kopFileDrop');
+  const kopFileLabel  = document.getElementById('kopFileLabel');
+  let kopReferenceFile = null;
+  const serverConfigNote = document.getElementById('serverConfigNote');
+
+  // ---------- Dropzone interactions ----------
+  dropzone.addEventListener('click', e => {
+    if (e.target === fileInput) return;
+    fileInput.click();
+  });
+
+  ['dragenter','dragover'].forEach(evt =>
+    dropzone.addEventListener(evt, e => {
+      e.preventDefault();
+      dropzone.classList.add('drag');
+    })
+  );
+  ['dragleave','drop'].forEach(evt =>
+    dropzone.addEventListener(evt, e => {
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+    })
+  );
+  dropzone.addEventListener('drop', e => {
+    handleFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', e => {
+    handleFiles(e.target.files);
+    fileInput.value = '';
+  });
+
+  // ---------- Kop reference file (new kop DWG) ----------
+  kopFileDrop.addEventListener('click', e => {
+    if (e.target === kopFileInput) return;
+    kopFileInput.click();
+  });
+
+  kopFileInput.addEventListener('change', e => {
+    setKopReferenceFile(e.target.files[0] || null);
+  });
+  ['dragenter','dragover'].forEach(evt =>
+    kopFileDrop.addEventListener(evt, e => {
+      e.preventDefault();
+      kopFileDrop.classList.add('drag');
+    })
+  );
+  ['dragleave','drop'].forEach(evt =>
+    kopFileDrop.addEventListener(evt, e => {
+      e.preventDefault();
+      kopFileDrop.classList.remove('drag');
+    })
+  );
+  kopFileDrop.addEventListener('drop', e => {
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      setKopReferenceFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  function setKopReferenceFile(file){
+    kopFileDrop.classList.remove('field-error');
+    if (!file || !file.name.toLowerCase().endsWith('.dwg')) {
+      kopReferenceFile = null;
+      kopFileDrop.classList.remove('has-file');
+      kopFileLabel.innerHTML = 'Tarik file DWG kop baru ke sini, atau <b>klik untuk pilih</b>';
+      return;
+    }
+    kopReferenceFile = file;
+    kopFileDrop.classList.add('has-file');
+    kopFileLabel.textContent = `${file.name} — klik untuk ganti`;
+  }
+
+  function handleFiles(fileList){
+    const files = Array.from(fileList).filter(f => f.name.toLowerCase().endsWith('.dwg'));
+    if (files.length === 0) return;
+
+    const oldBlockName = oldBlockInput.value.trim();
+    const newBlockName = newBlockInput.value.trim();
+
+    oldBlockInput.classList.remove('field-error');
+    newBlockInput.classList.remove('field-error');
+    kopFileDrop.classList.remove('field-error');
+
+    if (!oldBlockName || !newBlockName || !kopReferenceFile) {
+      if (!oldBlockName) oldBlockInput.classList.add('field-error');
+      if (!newBlockName) newBlockInput.classList.add('field-error');
+      if (!kopReferenceFile) kopFileDrop.classList.add('field-error');
+      alert('Isi Nama Blok Kop Lama, Nama Blok Kop Baru, dan upload file referensi Kop Baru (.dwg) sebelum upload file.');
+      return;
+    }
+
+    const formData = new FormData();
+    files.forEach(f => formData.append('files', f));
+    formData.append('old_block_name', oldBlockName);
+    formData.append('new_block_name', newBlockName);
+    formData.append('kop_reference_file', kopReferenceFile);
+    
+    // Upload files to backend
+    fetch(`${API_BASE}/api/upload`, {
+      method: 'POST',
+      body: formData
+    })
+    .then(res => {
+      if (!res.ok) {
+        return res.json().then(err => { throw new Error(err.error || 'Gagal mengunggah file.'); });
+      }
+      return res.json();
+    })
+    .then(data => {
+      // Refresh status immediately
+      fetchStatus();
+      startPolling();
+    })
+    .catch(err => {
+      alert(err.message);
+    });
+  }
+
+  // ---------- Polling ----------
+  function startPolling() {
+    if (pollInterval) return;
+    pollInterval = setInterval(fetchStatus, 1500);
+  }
+
+  function stopPolling() {
+    if (pollInterval) {
+      clearInterval(pollInterval);
+      pollInterval = null;
+    }
+  }
+
+  function fetchStatus() {
+    fetch(`${API_BASE}/api/status`)
+    .then(res => res.json())
+    .then(data => {
+      jobs = data;
+      render();
+      
+      // Check if any job is still in queue or processing
+      const hasActiveJobs = jobs.some(j => j.status === 'antrian' || j.status === 'proses');
+      if (hasActiveJobs) {
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    })
+    .catch(err => {
+      console.error('Error fetching job status:', err);
+    });
+  }
+
+  // ---------- Actions ----------
+  clearBtn.addEventListener('click', () => {
+    fetch(`${API_BASE}/api/clear`, { method: 'POST' })
+    .then(res => res.json())
+    .then(data => {
+      fetchStatus();
+    });
+  });
+
+  downloadAllBtn.addEventListener('click', () => {
+    window.location.href = `${API_BASE}/api/download/all`;
+  });
+
+  function cancelJob(id){
+    fetch(`${API_BASE}/api/cancel/${id}`, { method: 'POST' })
+    .then(res => {
+      fetchStatus();
+    });
+  }
+
+  function downloadJob(id){
+    window.location.href = `${API_BASE}/api/download/${id}`;
+  }
+
+  function downloadJobPdf(id){
+    window.location.href = `${API_BASE}/api/download/${id}/pdf`;
+  }
+  
+  function toggleLogs(id) {
+    openLogs[id] = !openLogs[id];
+    const el = document.getElementById(`logs_${id}`);
+    const arr = document.getElementById(`arrow_${id}`);
+    if (el) el.style.display = openLogs[id] ? 'block' : 'none';
+    if (arr) {
+      if (openLogs[id]) arr.classList.add('open');
+      else arr.classList.remove('open');
+    }
+  }
+
+  // ---------- Render ----------
+  function render(){
+    emptyState.style.display = jobs.length === 0 ? 'block' : 'none';
+    queueList.innerHTML = jobs.map(jobRowHtml).join('');
+    
+    const hasCompleted = jobs.some(j => j.status === 'selesai');
+    downloadAllBtn.style.display = hasCompleted ? 'inline-block' : 'none';
+  }
+
+  function jobRowHtml(job){
+    const barClass = job.status === 'selesai' ? 'done' : (job.status === 'gagal' ? 'error' : '');
+    const badgeLabel = {
+      antrian: 'Antrian', 
+      proses: 'Proses', 
+      selesai: 'Selesai', 
+      gagal: 'Gagal',
+      cancelled: 'Batal'
+    }[job.status] || job.status;
+
+    let actionHtml;
+    if (job.status === 'selesai'){
+      actionHtml = `<button class="action-btn download" onclick="downloadJob('${job.id}')">Unduh DWG</button><button class="action-btn download" onclick="downloadJobPdf('${job.id}')">Unduh PDF</button>`;
+    } else if (job.status === 'gagal' || job.status === 'cancelled'){
+      actionHtml = `<button class="action-btn" onclick="cancelJob('${job.id}')">Hapus</button>`;
+    } else if (job.status === 'proses') {
+      actionHtml = `<button class="action-btn" disabled>Diproses</button>`;
+    } else {
+      actionHtml = `<button class="action-btn" onclick="cancelJob('${job.id}')">Batalkan</button>`;
+    }
+
+    const logDisplay = openLogs[job.id] ? 'block' : 'none';
+    const arrowClass = openLogs[job.id] ? 'arrow-icon open' : 'arrow-icon';
+    
+    let logsHtml = '';
+    if (job.logs && job.logs.length > 0) {
+      logsHtml = `
+        <div>
+          <div class="job-logs-toggle" onclick="toggleLogs('${job.id}')">
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" class="${arrowClass}" id="arrow_${job.id}">
+              <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Log Proses (${job.logs.length} baris)
+          </div>
+          <div class="job-logs-content" id="logs_${job.id}" style="display: ${logDisplay};">
+            <pre>${job.logs.map(line => {
+              if (line.includes('[ERROR]') || line.includes('[!]')) {
+                return `<span class="log-err">${escapeHtml(line)}</span>`;
+              }
+              return escapeHtml(line);
+            }).join('\n')}</pre>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <li class="queue-item">
+        <div class="job-row">
+          <div class="file-meta">
+            <div class="file-name">${escapeHtml(job.name)} <span style="font-size: 11px; color: var(--slate-400); font-weight: normal; margin-left: 6px;">(${job.size})</span></div>
+            <div class="file-bar-track"><div class="file-bar-fill ${barClass}" style="width:${job.progress}%"></div></div>
+          </div>
+          <span class="status-badge ${job.status}">${badgeLabel}</span>
+          <div class="action-group">${actionHtml}</div>
+        </div>
+        ${logsHtml}
+      </li>
+    `;
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // ---------- Server status ping ----------
+  function checkServer(){
+    fetch(`${API_BASE}/api/ping`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'online') {
+        serverDot.className = 'dot online';
+        serverLabel.textContent = 'SERVER LOKAL: TERHUBUNG';
+      }
+    })
+    .catch(err => {
+      serverDot.className = 'dot';
+      serverLabel.textContent = 'SERVER LOKAL: TERPUTUS';
+    });
+  }
+
+  // Initial check & periodic checks
+  checkServer();
+  setInterval(checkServer, 5000);
+  
+  // Initial load
+  fetchStatus();
+</script>
+
+</body>
+</html>
