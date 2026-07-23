@@ -908,7 +908,11 @@ const API_BASE = (window.location.hostname === 'localhost' || window.location.ho
 
     let actionHtml;
     if (job.status === 'selesai'){
-      actionHtml = `<button class="action-btn download" onclick="downloadJob('${job.id}')">Unduh DWG</button><button class="action-btn download" onclick="downloadJobPdf('${job.id}')">Unduh PDF</button>`;
+      if (job.pdf_status === 'gagal') {
+        actionHtml = `<button class="action-btn download" onclick="downloadJob('${job.id}')">Unduh DWG</button><button class="action-btn" style="border-color:rgba(232,87,74,0.35); color:var(--red-500); cursor:not-allowed;" disabled>Gagal PDF</button>`;
+      } else {
+        actionHtml = `<button class="action-btn download" onclick="downloadJob('${job.id}')">Unduh DWG</button><button class="action-btn download" onclick="downloadJobPdf('${job.id}')">Unduh PDF</button>`;
+      }
     } else if (job.status === 'gagal' || job.status === 'cancelled'){
       actionHtml = `<button class="action-btn" onclick="cancelJob('${job.id}')">Hapus</button>`;
     } else if (job.status === 'proses') {
